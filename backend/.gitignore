@@ -17,6 +17,8 @@ lerna-debug.log*
 
 /memory-bank
 
+.env
+
 # Tests
 /coverage
 /.nyc_output
