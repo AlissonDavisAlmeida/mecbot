@@ -1,12 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 
-import { Conversation } from '../../domain/entities/conversation.entity';
-import { Message, MessageRole } from '../../domain/value-objects/message.vo';
+import { Message } from '../../domain/value-objects/message.vo';
 import {
   AI_PROVIDER_TOKEN,
- type IAIProvider,
+  type IAIProvider,
 } from '../../domain/ports/ai-provider.port';
+import {
+  CONVERSAS_REPOSITORY_TOKEN,
+  type IConversasRepository,
+} from '../../domain/ports/conversas-repository.port';
 import { ChatRequestDto } from '../dtos/chat-request.dto';
 import { ChatResponseDto } from '../dtos/chat-response.dto';
 import { WORKSHOP_SYSTEM_PROMPT } from '../constants/workshop-system-prompt';
@@ -16,35 +18,47 @@ export class SendMessageUseCase {
   constructor(
     @Inject(AI_PROVIDER_TOKEN)
     private readonly aiProvider: IAIProvider,
+    @Inject(CONVERSAS_REPOSITORY_TOKEN)
+    private readonly conversasRepository: IConversasRepository,
   ) {}
 
   async execute(dto: ChatRequestDto): Promise<ChatResponseDto> {
-    const historyMessages = (dto.conversationHistory ?? []).map(
-      (m) => new Message(m.role as MessageRole, m.content),
+    // 1. Obter ou criar conversa aberta
+    const conversation = await this.conversasRepository.getOrCreateConversation(
+      dto.empresaId,
+      dto.cliente,
     );
 
-    const conversation = new Conversation(
-      randomUUID(),
-      dto.workshopId,
-      dto.customerId,
-      historyMessages,
+    // 2. Buscar histórico ANTES de salvar a mensagem atual (evita duplicação no contexto)
+    const lastMessages = await this.conversasRepository.getLastMessages(
+      conversation.id,
+      10,
     );
 
+    // 3. Salvar mensagem do usuário
     const userMessage = new Message('user', dto.message);
-    conversation.addMessage(userMessage);
+    await this.conversasRepository.addMessage(conversation.id, userMessage);
 
+    // 4. Montar contexto: system + histórico + mensagem atual
     const allMessages = [
       new Message('system', WORKSHOP_SYSTEM_PROMPT),
-      ...historyMessages,
+      ...lastMessages,
       userMessage,
     ];
 
+    // 5. Gerar resposta via AI
     const response = await this.aiProvider.generateResponse(allMessages);
 
+    // 6. Salvar resposta da IA
+    const assistantMessage = new Message('assistant', response);
+    await this.conversasRepository.addMessage(
+      conversation.id,
+      assistantMessage,
+    );
     return {
       response,
-      customerId: dto.customerId,
-      workshopId: dto.workshopId,
+      cliente: dto.cliente,
+      empresaId: dto.empresaId,
       timestamp: new Date(),
     };
   }

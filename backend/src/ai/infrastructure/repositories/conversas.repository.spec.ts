@@ -1,0 +1,213 @@
+import { ConversasRepository } from './conversas.repository';
+import { Message } from '../../domain/value-objects/message.vo';
+
+describe('ConversasRepository', () => {
+  let repository: ConversasRepository;
+  let mockPrisma: any;
+
+  beforeEach(() => {
+    mockPrisma = {
+      conversa: {
+        findFirst: jest.fn(),
+        create: jest.fn(),
+        findUnique: jest.fn(),
+        update: jest.fn(),
+      },
+      mensagem: {
+        create: jest.fn(),
+        findMany: jest.fn(),
+      },
+    };
+
+    repository = new ConversasRepository(mockPrisma);
+  });
+
+  describe('getOrCreateConversation', () => {
+    it('should return existing open conversation if found', async () => {
+      const mockConversa = {
+        id: 'conv-1',
+        empresaId: 'emp-1',
+        cliente: 'cli-1',
+        status: 'open',
+        createdAt: new Date(),
+        mensagens: [
+          { id: 'msg-1', role: 'user', conteudo: 'Olá', createdAt: new Date(), conversaId: 'conv-1' },
+        ],
+      };
+
+      mockPrisma.conversa.findFirst.mockResolvedValue(mockConversa);
+
+      const result = await repository.getOrCreateConversation('emp-1', 'cli-1');
+
+      expect(result.id).toBe('conv-1');
+      expect(result.empresaId).toBe('emp-1');
+      expect(result.cliente).toBe('cli-1');
+      expect(result.status).toBe('open');
+      expect(result.messageCount).toBe(1);
+      expect(mockPrisma.conversa.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ status: 'open' }),
+        }),
+      );
+    });
+
+    it('should create new open conversation when no open conversation exists', async () => {
+      const newConversa = {
+        id: 'conv-2',
+        empresaId: 'emp-1',
+        cliente: 'cli-2',
+        status: 'open',
+        createdAt: new Date(),
+        mensagens: [],
+      };
+
+      mockPrisma.conversa.findFirst.mockResolvedValue(null);
+      mockPrisma.conversa.create.mockResolvedValue(newConversa);
+
+      const result = await repository.getOrCreateConversation('emp-1', 'cli-2');
+
+      expect(mockPrisma.conversa.create).toHaveBeenCalledWith({
+        data: {
+          empresaId: 'emp-1',
+          cliente: 'cli-2',
+          status: 'open',
+        },
+        include: {
+          mensagens: true,
+        },
+      });
+      expect(result.id).toBe('conv-2');
+      expect(result.status).toBe('open');
+      expect(result.messageCount).toBe(0);
+    });
+
+    it('should create new conversation even when closed conversation exists', async () => {
+      const closedConversa = {
+        id: 'conv-old',
+        empresaId: 'emp-1',
+        cliente: 'cli-1',
+        status: 'closed',
+        createdAt: new Date(),
+        mensagens: [],
+      };
+      const newConversa = {
+        id: 'conv-new',
+        empresaId: 'emp-1',
+        cliente: 'cli-1',
+        status: 'open',
+        createdAt: new Date(),
+        mensagens: [],
+      };
+
+      // findFirst retorna null pois filtra por status=open (conversa fechada é ignorada)
+      mockPrisma.conversa.findFirst.mockResolvedValue(null);
+      mockPrisma.conversa.create.mockResolvedValue(newConversa);
+
+      const result = await repository.getOrCreateConversation('emp-1', 'cli-1');
+
+      expect(result.id).toBe('conv-new');
+      expect(result.status).toBe('open');
+      void closedConversa; // garante que a conversa antiga não foi retornada
+    });
+  });
+
+  describe('addMessage', () => {
+    it('should add message to conversation', async () => {
+      const message = new Message('user', 'Teste', new Date('2026-04-11'));
+      mockPrisma.mensagem.create.mockResolvedValue({});
+
+      await repository.addMessage('conv-1', message);
+
+      expect(mockPrisma.mensagem.create).toHaveBeenCalledWith({
+        data: {
+          conversaId: 'conv-1',
+          role: 'user',
+          conteudo: 'Teste',
+          createdAt: new Date('2026-04-11'),
+        },
+      });
+    });
+  });
+
+  describe('getLastMessages', () => {
+    it('should return last N messages in chronological order', async () => {
+      const date1 = new Date('2026-04-11T10:00:00');
+      const date2 = new Date('2026-04-11T10:05:00');
+      const date3 = new Date('2026-04-11T10:10:00');
+
+      mockPrisma.mensagem.findMany.mockResolvedValue([
+        { role: 'user', conteudo: 'Terceira', createdAt: date3, conversaId: 'conv-1', id: 'msg-3' },
+        { role: 'assistant', conteudo: 'Segunda', createdAt: date2, conversaId: 'conv-1', id: 'msg-2' },
+        { role: 'user', conteudo: 'Primeira', createdAt: date1, conversaId: 'conv-1', id: 'msg-1' },
+      ]);
+
+      const result = await repository.getLastMessages('conv-1', 10);
+
+      expect(result).toHaveLength(3);
+      expect(result[0].content).toBe('Primeira');
+      expect(result[1].content).toBe('Segunda');
+      expect(result[2].content).toBe('Terceira');
+    });
+
+    it('should respect limit parameter', async () => {
+      mockPrisma.mensagem.findMany.mockResolvedValue([]);
+
+      await repository.getLastMessages('conv-1', 10);
+
+      expect(mockPrisma.mensagem.findMany).toHaveBeenCalledWith({
+        where: {
+          conversaId: 'conv-1',
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 10,
+      });
+    });
+  });
+
+  describe('loadConversation', () => {
+    it('should load conversation with all messages', async () => {
+      const mockConversa = {
+        id: 'conv-1',
+        empresaId: 'emp-1',
+        cliente: 'cli-1',
+        status: 'open',
+        createdAt: new Date(),
+        mensagens: [
+          { id: 'msg-1', role: 'user', conteudo: 'Olá', createdAt: new Date(), conversaId: 'conv-1' },
+          { id: 'msg-2', role: 'assistant', conteudo: 'Oi', createdAt: new Date(), conversaId: 'conv-1' },
+        ],
+      };
+
+      mockPrisma.conversa.findUnique.mockResolvedValue(mockConversa);
+
+      const result = await repository.loadConversation('conv-1');
+
+      expect(result).not.toBeNull();
+      expect(result?.messageCount).toBe(2);
+      expect(result?.status).toBe('open');
+    });
+
+    it('should return null if conversation not found', async () => {
+      mockPrisma.conversa.findUnique.mockResolvedValue(null);
+
+      const result = await repository.loadConversation('conv-999');
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('closeConversation', () => {
+    it('should update conversation status to closed', async () => {
+      mockPrisma.conversa.update.mockResolvedValue({});
+
+      await repository.closeConversation('conv-1');
+
+      expect(mockPrisma.conversa.update).toHaveBeenCalledWith({
+        where: { id: 'conv-1' },
+        data: { status: 'closed' },
+      });
+    });
+  });
+});

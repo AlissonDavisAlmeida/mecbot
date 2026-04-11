@@ -10,8 +10,8 @@ describe('AiService', () => {
 
   const mockResponse: ChatResponseDto = {
     response: 'Resposta de teste',
-    customerId: 'customer-1',
-    workshopId: 'workshop-1',
+    cliente: 'cliente-1',
+    empresaId: 'empresa-1',
     timestamp: new Date(),
   };
 
@@ -36,8 +36,8 @@ describe('AiService', () => {
 
   it('should delegate sendMessage to SendMessageUseCase', async () => {
     const dto: ChatRequestDto = {
-      customerId: 'customer-1',
-      workshopId: 'workshop-1',
+      cliente: 'cliente-1',
+      empresaId: 'empresa-1',
       message: 'Preciso de revisão',
     };
 

@@ -1,13 +1,18 @@
 export class ChatResponseDto {
   readonly response: string;
-  readonly customerId: string;
-  readonly workshopId: string;
+  readonly cliente: string;
+  readonly empresaId: string;
   readonly timestamp: Date;
 
-    constructor(response: string, customerId: string, workshopId: string, timestamp: Date = new Date()) {
-        this.response = response;
-        this.customerId = customerId;
-        this.workshopId = workshopId;
-        this.timestamp = timestamp;
-    }
+  constructor(
+    response: string,
+    cliente: string,
+    empresaId: string,
+    timestamp: Date = new Date(),
+  ) {
+    this.response = response;
+    this.cliente = cliente;
+    this.empresaId = empresaId;
+    this.timestamp = timestamp;
+  }
 }

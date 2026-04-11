@@ -10,8 +10,8 @@ describe('AiController', () => {
 
   const mockResponse: ChatResponseDto = {
     response: 'Olá! Como posso ajudar?',
-    customerId: 'customer-1',
-    workshopId: 'workshop-1',
+    cliente: 'cliente-1',
+    empresaId: 'empresa-1',
     timestamp: new Date(),
   };
 
@@ -34,8 +34,8 @@ describe('AiController', () => {
 
   it('should call aiService.sendMessage and return the response', async () => {
     const dto: ChatRequestDto = {
-      customerId: 'customer-1',
-      workshopId: 'workshop-1',
+      cliente: 'cliente-1',
+      empresaId: 'empresa-1',
       message: 'Quero um orçamento',
     };
 
