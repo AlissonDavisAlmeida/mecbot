@@ -4,8 +4,8 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
   moduleFormat = "cjs"
 }
 
@@ -14,22 +14,28 @@ datasource db {
 }
 
 model Empresa {
-  id        String     @id @default(uuid())
+  id        String   @id @default(uuid())
   nome      String
-  createdAt DateTime   @default(now())
+  createdAt DateTime @default(now())
 
   usuarios  Usuario[]
   conversas Conversa[]
 }
 
 model Usuario {
-  id         String   @id @default(uuid())
+  id         String  @id @default(uuid())
   nome       String
-  email      String   @unique
-  createdAt  DateTime @default(now())
+  email      String  @unique
+  senha      String?
+  provider   String  @default("local") // local | google
+  providerId String?
+  role       String  @default("user")
 
-  empresaId  String
-  empresa    Empresa  @relation(fields: [empresaId], references: [id])
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum ConversaStatus {
@@ -38,24 +44,24 @@ enum ConversaStatus {
 }
 
 model Conversa {
-  id         String         @id @default(uuid())
-  cliente    String
-  status     ConversaStatus @default(open)
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  id        String         @id @default(uuid())
+  cliente   String
+  status    ConversaStatus @default(open)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 
-  empresaId  String
-  empresa    Empresa        @relation(fields: [empresaId], references: [id])
+  empresaId String
+  empresa   Empresa @relation(fields: [empresaId], references: [id])
 
-  mensagens  Mensagem[]
+  mensagens Mensagem[]
 }
 
 model Mensagem {
-  id          String   @id @default(uuid())
-  conteudo    String
-  role        String   // "user" | "assistant"
-  createdAt   DateTime @default(now())
+  id        String   @id @default(uuid())
+  conteudo  String
+  role      String // "user" | "assistant"
+  createdAt DateTime @default(now())
 
-  conversaId  String
-  conversa    Conversa @relation(fields: [conversaId], references: [id])
+  conversaId String
+  conversa   Conversa @relation(fields: [conversaId], references: [id])
 }

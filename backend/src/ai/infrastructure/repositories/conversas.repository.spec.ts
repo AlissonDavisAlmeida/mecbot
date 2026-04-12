@@ -46,12 +46,13 @@ describe('ConversasRepository', () => {
       expect(result.messageCount).toBe(1);
       expect(mockPrisma.conversa.findFirst).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: expect.objectContaining({ status: 'open' }),
+          where: { empresaId: 'emp-1', cliente: 'cli-1' },
         }),
       );
+      expect(mockPrisma.conversa.update).not.toHaveBeenCalled();
     });
 
-    it('should create new open conversation when no open conversation exists', async () => {
+    it('should create new open conversation when none exists', async () => {
       const newConversa = {
         id: 'conv-2',
         empresaId: 'emp-1',
@@ -81,7 +82,7 @@ describe('ConversasRepository', () => {
       expect(result.messageCount).toBe(0);
     });
 
-    it('should create new conversation even when closed conversation exists', async () => {
+    it('should reopen a closed conversation instead of creating a new one', async () => {
       const closedConversa = {
         id: 'conv-old',
         empresaId: 'emp-1',
@@ -90,24 +91,20 @@ describe('ConversasRepository', () => {
         createdAt: new Date(),
         mensagens: [],
       };
-      const newConversa = {
-        id: 'conv-new',
-        empresaId: 'emp-1',
-        cliente: 'cli-1',
-        status: 'open',
-        createdAt: new Date(),
-        mensagens: [],
-      };
 
-      // findFirst retorna null pois filtra por status=open (conversa fechada é ignorada)
-      mockPrisma.conversa.findFirst.mockResolvedValue(null);
-      mockPrisma.conversa.create.mockResolvedValue(newConversa);
+      mockPrisma.conversa.findFirst.mockResolvedValue(closedConversa);
+      mockPrisma.conversa.update.mockResolvedValue({});
 
       const result = await repository.getOrCreateConversation('emp-1', 'cli-1');
 
-      expect(result.id).toBe('conv-new');
-      expect(result.status).toBe('open');
-      void closedConversa; // garante que a conversa antiga não foi retornada
+      expect(mockPrisma.conversa.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'conv-old' },
+          data: expect.objectContaining({ status: 'open' }),
+        }),
+      );
+      expect(mockPrisma.conversa.create).not.toHaveBeenCalled();
+      expect(result.id).toBe('conv-old');
     });
   });
 
