@@ -7,10 +7,15 @@ jest.mock('@/generated/prisma/client', () => {
         findFirst: jest.fn(),
         create: jest.fn(),
         findUnique: jest.fn(),
+        update: jest.fn(),
       },
       mensagem: {
         create: jest.fn(),
         findMany: jest.fn(),
+      },
+      usuario: {
+        findUnique: jest.fn(),
+        create: jest.fn(),
       },
     })),
   };

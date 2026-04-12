@@ -6,7 +6,7 @@ export interface AuthUserResponse {
   empresaId: string;
 }
 
-export class AuthResponseDto {
+export interface AuthResponseDto {
   access_token: string;
   user: AuthUserResponse;
 }
