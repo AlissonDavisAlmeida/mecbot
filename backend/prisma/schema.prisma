@@ -53,7 +53,8 @@ model Conversa {
   empresaId String
   empresa   Empresa @relation(fields: [empresaId], references: [id])
 
-  mensagens Mensagem[]
+  mensagens          Mensagem[]
+  mensagemArquivadas MensagemArquivada[]
 }
 
 model Mensagem {
@@ -64,4 +65,18 @@ model Mensagem {
 
   conversaId String
   conversa   Conversa @relation(fields: [conversaId], references: [id])
+
+  @@index([conversaId, createdAt])
+}
+
+model MensagemArquivada {
+  id        String   @id @default(uuid())
+  conteudo  String
+  role      String // "user" | "assistant"
+  createdAt DateTime @default(now())
+
+  conversaId String
+  conversa   Conversa @relation(fields: [conversaId], references: [id])
+
+  @@index([conversaId, createdAt])
 }

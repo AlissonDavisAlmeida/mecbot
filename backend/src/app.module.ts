@@ -9,6 +9,7 @@ import { ConversationCleaner } from './tasks/conversation-cleaner.service';
 import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './auth/guards/roles.guard';
+import { MessageArchiveJob } from './tasks/message-archive.-job.service';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
   providers: [
     AppService,
     ConversationCleaner,
+    MessageArchiveJob,
      {
             provide: APP_GUARD,
             useClass: RolesGuard,
