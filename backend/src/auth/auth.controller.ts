@@ -5,6 +5,9 @@ import { LoginDto } from './application/dtos/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { type AuthenticatedUser } from './domain/types/jwt-payload.type';
+import { RolesGuard } from './guards/roles.guard';
+import { Roles } from './decorators/roles.decorator';
+import { Role } from './enum/role.enum';
 
 @Controller('auth')
 export class AuthController {
@@ -22,7 +25,8 @@ export class AuthController {
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin, Role.User)
   me(@CurrentUser() user: AuthenticatedUser) {
     return user;
   }

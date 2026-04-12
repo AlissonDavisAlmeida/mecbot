@@ -11,7 +11,7 @@ import { UsersRepository } from './infrastructure/repositories/users.repository'
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { USERS_REPOSITORY_TOKEN } from './domain/ports/users-repository.port';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { RolesGuard } from './guards/roles.guard';
+import { TenantGuard } from './guards/tenant.guard';
 
 @Module({
   imports: [
@@ -33,9 +33,9 @@ import { RolesGuard } from './guards/roles.guard';
     LoginUserUseCase,
     JwtStrategy,
     JwtAuthGuard,
-    RolesGuard,
+    TenantGuard,
     { provide: USERS_REPOSITORY_TOKEN, useClass: UsersRepository },
   ],
-  exports: [JwtAuthGuard, RolesGuard, JwtModule],
+  exports: [JwtAuthGuard, TenantGuard, JwtModule],
 })
 export class AuthModule {}

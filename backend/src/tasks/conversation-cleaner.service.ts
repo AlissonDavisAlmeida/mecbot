@@ -7,7 +7,7 @@ export class ConversationCleaner {
     private readonly logger = new Logger(ConversationCleaner.name);
     constructor(private prisma: PrismaService) { }
 
-    @Cron(CronExpression.EVERY_30_SECONDS) // roda a cada 1 min
+    @Cron(CronExpression.EVERY_MINUTE) // roda a cada 1 min
     async closeInactiveConversations() {
         const limite = new Date(Date.now() - 30 * 60 * 1000); // 30 minutos
 
