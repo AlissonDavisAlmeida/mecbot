@@ -11,7 +11,7 @@ export function useLogin() {
     mutationFn: (payload: LoginPayload) => loginUser(payload),
     onSuccess: (data) => {
       setAuth(data.access_token, data.user)
-      router.push('/')
+      router.push('/dashboard')
     },
   })
 }

@@ -11,7 +11,7 @@ export function useRegister() {
     mutationFn: (payload: RegisterPayload) => registerUser(payload),
     onSuccess: (data) => {
       setAuth(data.access_token, data.user)
-      router.push('/')
+      router.push('/dashboard')
     },
   })
 }
