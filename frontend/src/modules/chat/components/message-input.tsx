@@ -2,14 +2,13 @@
 'use client'
 
 import { useState } from 'react'
+import { Send } from 'lucide-react'
 import { useSendMessage } from '../hooks/use-send-message'
 
-
 type MessageInputProps = {
-    conversaId: string
-    empresaId: string
-    clienteId: string
-
+  conversaId: string
+  empresaId: string
+  clienteId: string
 }
 
 export function MessageInput({ conversaId, empresaId, clienteId }: MessageInputProps) {
@@ -17,27 +16,36 @@ export function MessageInput({ conversaId, empresaId, clienteId }: MessageInputP
   const { mutateAsync, isPending } = useSendMessage(conversaId)
 
   async function handleSend() {
-    if (!text) return
-
-    await mutateAsync({ empresaId, cliente: clienteId, mensagem: text })
+    if (!text.trim() || isPending) return
+    await mutateAsync({ empresaId, cliente: clienteId, message: text.trim() })
     setText('')
   }
 
-  return (
-    <div className="flex gap-2">
-      <input
-        className="flex-1 border rounded-xl p-3 text-sm outline-none"
-        placeholder="Digite uma mensagem..."
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-      />
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+    }
+  }
 
+  return (
+    <div className="flex gap-3 items-end">
+      <textarea
+        className="flex-1 bg-muted border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none resize-none focus:ring-1 focus:ring-ring min-h-[44px] max-h-32 leading-relaxed"
+        placeholder="Digite uma mensagem... (Enter para enviar, Shift+Enter para nova linha)"
+        value={text}
+        rows={1}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={handleKeyDown}
+        disabled={isPending}
+      />
       <button
         onClick={handleSend}
-        disabled={isPending}
-        className="bg-blue-600 text-white px-4 rounded-xl"
+        disabled={isPending || !text.trim()}
+        className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white p-3 rounded-xl transition-colors flex-shrink-0"
+        title="Enviar (Enter)"
       >
-        Enviar
+        <Send size={18} />
       </button>
     </div>
   )

@@ -8,7 +8,7 @@ export function useSendMessage(conversaId: string) {
         mutationFn: async (data: {
             empresaId: string
             cliente: string
-            mensagem: string
+            message: string
         }) => {
             const res = await api.post('/ai/chat', data)
             return res.data

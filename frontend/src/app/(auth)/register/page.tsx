@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Loader2 } from 'lucide-react'
+import { Loader2, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -39,13 +39,19 @@ export default function RegisterPage() {
     error instanceof Error ? error.message : error ? 'Erro ao criar conta' : null
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Criar conta</CardTitle>
-        <CardDescription>
-          Preencha os dados abaixo para criar sua conta no MecBot
-        </CardDescription>
-      </CardHeader>
+    <div className="space-y-4">
+      <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <ArrowLeft className="size-4" />
+        Voltar para página inicial
+      </Link>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Criar conta</CardTitle>
+          <CardDescription>
+            Preencha os dados abaixo para criar sua conta no MecBot
+          </CardDescription>
+        </CardHeader>
 
       <form onSubmit={handleSubmit}>
         <CardContent className="flex flex-col gap-4">
@@ -127,5 +133,6 @@ export default function RegisterPage() {
         </CardFooter>
       </form>
     </Card>
+    </div>
   )
 }
