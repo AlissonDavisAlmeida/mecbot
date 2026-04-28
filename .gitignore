@@ -1,1 +1,5 @@
 /memory-bank
+.env
+testes*
+IMPLEMENTATION-SUMMARY.md
+GET-MESSAGES-API.md
