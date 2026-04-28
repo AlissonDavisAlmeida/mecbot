@@ -1,5 +1,7 @@
 export class GetMessagesDto {
   declare conversaId: string
+  declare empresaId: string
+  declare cliente: string
   declare limit?: number
   declare offset?: number
 }

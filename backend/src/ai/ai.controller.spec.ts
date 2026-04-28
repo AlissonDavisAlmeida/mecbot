@@ -59,11 +59,13 @@ describe('AiController', () => {
   });
 
   it('should call getMessagesUseCase.execute and return messages', async () => {
-    const result = await controller.getMessages('conv-123', '50', '0');
+    const result = await controller.getMessages('conv-123', 'emp-1', 'cli-1', '50', '0');
 
     expect(getMessagesUseCase.execute).toHaveBeenCalledWith(
       expect.objectContaining({
         conversaId: 'conv-123',
+        empresaId: 'emp-1',
+        cliente: 'cli-1',
         limit: 50,
         offset: 0,
       }),

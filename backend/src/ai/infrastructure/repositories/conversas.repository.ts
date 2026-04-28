@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { Conversation } from '../../domain/entities/conversation.entity';
 import { Message } from '../../domain/value-objects/message.vo';
-import { IConversasRepository } from '../../domain/ports/conversas-repository.port';
+import {
+  IConversasRepository,
+  ConversationMessagesPage,
+} from '../../domain/ports/conversas-repository.port';
 
 @Injectable()
 export class ConversasRepository implements IConversasRepository {
@@ -139,5 +142,41 @@ export class ConversasRepository implements IConversasRepository {
             where: { id: conversaId },
             data: { status: 'closed' },
         });
+    }
+
+    async findMessagesByConversation(
+        conversaId: string,
+        empresaId: string,
+        cliente: string,
+        limit: number,
+        offset: number,
+    ): Promise<ConversationMessagesPage> {
+        // Filtra pelo relacionamento para garantir isolamento multitenant no nível do banco
+        const where = {
+            conversaId,
+            conversa: { empresaId, cliente },
+        };
+
+        const [mensagens, total] = await Promise.all([
+            this.prisma.mensagem.findMany({
+                where,
+                select: { id: true, conteudo: true, role: true, createdAt: true },
+                orderBy: { createdAt: 'asc' },
+                take: limit,
+                skip: offset,
+            }),
+            this.prisma.mensagem.count({ where }),
+        ]);
+        console.log("🚀 ~ ConversasRepository ~ findMessagesByConversation ~ mensagens:", mensagens)
+
+        return {
+            messages: mensagens.map((m) => ({
+                id: m.id,
+                conteudo: m.conteudo,
+                role: m.role as 'user' | 'assistant',
+                createdAt: m.createdAt,
+            })),
+            total,
+        };
     }
 }

@@ -1,48 +1,34 @@
-import { Injectable } from '@nestjs/common'
-import { PrismaService } from '@/prisma/prisma.service'
+import { Inject, Injectable } from '@nestjs/common'
+import {
+  CONVERSAS_REPOSITORY_TOKEN,
+  type IConversasRepository,
+} from '../../domain/ports/conversas-repository.port'
 import { GetMessagesDto, GetMessagesResponseDto } from '../dtos/get-messages.dto'
 
 @Injectable()
 export class GetConversationMessagesUseCase {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(CONVERSAS_REPOSITORY_TOKEN)
+    private readonly conversasRepository: IConversasRepository,
+  ) {}
 
   async execute(dto: GetMessagesDto): Promise<GetMessagesResponseDto> {
     const limit = dto.limit ?? 50
     const offset = dto.offset ?? 0
 
-    // Busca mensagens da conversa com paginação
-    const [mensagens, total] = await Promise.all([
-      this.prisma.mensagem.findMany({
-        where: {
-          conversaId: dto.conversaId,
-        },
-        select: {
-          id: true,
-          conteudo: true,
-          role: true,
-          createdAt: true,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        take: limit,
-        skip: offset,
-      }),
-      this.prisma.mensagem.count({
-        where: {
-          conversaId: dto.conversaId,
-        },
-      }),
-    ])
-
-    // Reverter ordem para chronológica (mais antigo primeiro)
-    mensagens.reverse()
+    const { messages, total } = await this.conversasRepository.findMessagesByConversation(
+      dto.conversaId,
+      dto.empresaId,
+      dto.cliente,
+      limit,
+      offset,
+    )
 
     return {
-      data: mensagens.map((msg) => ({
+      data: messages.map((msg) => ({
         id: msg.id,
         conteudo: msg.conteudo,
-        role: msg.role as 'user' | 'assistant',
+        role: msg.role,
         createdAt: msg.createdAt.toISOString(),
       })),
       total,

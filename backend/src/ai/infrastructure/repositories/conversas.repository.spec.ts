@@ -16,6 +16,7 @@ describe('ConversasRepository', () => {
       mensagem: {
         create: jest.fn(),
         findMany: jest.fn(),
+        count: jest.fn(),
       },
     };
 
@@ -205,6 +206,62 @@ describe('ConversasRepository', () => {
         where: { id: 'conv-1' },
         data: { status: 'closed' },
       });
+    });
+  });
+
+  describe('findMessagesByConversation', () => {
+    const conversaId = 'conv-1';
+    const empresaId = 'emp-1';
+    const cliente = 'cli-1';
+
+    it('should return messages with total filtered by tenant', async () => {
+      const mockMensagens = [
+        { id: 'msg-1', conteudo: 'Olá', role: 'user', createdAt: new Date('2026-04-28T10:00:00Z') },
+        { id: 'msg-2', conteudo: 'Como posso ajudar?', role: 'assistant', createdAt: new Date('2026-04-28T10:00:05Z') },
+      ];
+
+      mockPrisma.mensagem.findMany.mockResolvedValue(mockMensagens);
+      mockPrisma.mensagem.count.mockResolvedValue(2);
+
+      const result = await repository.findMessagesByConversation(conversaId, empresaId, cliente, 50, 0);
+
+      expect(result.messages).toHaveLength(2);
+      expect(result.total).toBe(2);
+      expect(result.messages[0].id).toBe('msg-1');
+      expect(result.messages[0].conteudo).toBe('Olá');
+      expect(result.messages[0].role).toBe('user');
+    });
+
+    it('should query with tenant filter on the conversa relation', async () => {
+      mockPrisma.mensagem.findMany.mockResolvedValue([]);
+      mockPrisma.mensagem.count.mockResolvedValue(0);
+
+      await repository.findMessagesByConversation(conversaId, empresaId, cliente, 25, 0);
+
+      const expectedWhere = {
+        conversaId,
+        conversa: { empresaId, cliente },
+      };
+
+      expect(mockPrisma.mensagem.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expectedWhere,
+          orderBy: { createdAt: 'asc' },
+          take: 25,
+          skip: 0,
+        }),
+      );
+      expect(mockPrisma.mensagem.count).toHaveBeenCalledWith({ where: expectedWhere });
+    });
+
+    it('should return empty page when no messages found', async () => {
+      mockPrisma.mensagem.findMany.mockResolvedValue([]);
+      mockPrisma.mensagem.count.mockResolvedValue(0);
+
+      const result = await repository.findMessagesByConversation(conversaId, empresaId, cliente, 50, 0);
+
+      expect(result.messages).toHaveLength(0);
+      expect(result.total).toBe(0);
     });
   });
 });

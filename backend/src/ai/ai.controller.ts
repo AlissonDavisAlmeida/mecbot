@@ -27,14 +27,18 @@ export class AiController {
   @HttpCode(HttpStatus.OK)
   async getMessages(
     @Query('conversaId') conversaId: string,
+    @Query('empresaId') empresaId: string,
+    @Query('cliente') cliente: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ): Promise<GetMessagesResponseDto> {
     const dto = new GetMessagesDto()
     dto.conversaId = conversaId
+    dto.empresaId = empresaId
+    dto.cliente = cliente
     dto.limit = limit ? parseInt(limit, 10) : 50
     dto.offset = offset ? parseInt(offset, 10) : 0
-    
+
     return this.getConversationMessagesUseCase.execute(dto)
   }
 }
