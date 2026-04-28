@@ -1,7 +1,7 @@
  
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Send } from 'lucide-react'
 import { useSendMessage } from '../hooks/use-send-message'
 
@@ -9,16 +9,27 @@ type MessageInputProps = {
   conversaId: string
   empresaId: string
   clienteId: string
+  onPendingChange?: (pending: boolean) => void
 }
 
-export function MessageInput({ conversaId, empresaId, clienteId }: MessageInputProps) {
+export function MessageInput({ conversaId, empresaId, clienteId, onPendingChange }: MessageInputProps) {
   const [text, setText] = useState('')
   const { mutateAsync, isPending } = useSendMessage(conversaId)
 
+  // Notifica o pai sempre que o estado de loading muda
+  const prevPendingRef = React.useRef(false)
+  React.useEffect(() => {
+    if (prevPendingRef.current !== isPending) {
+      prevPendingRef.current = isPending
+      onPendingChange?.(isPending)
+    }
+  }, [isPending, onPendingChange])
+
   async function handleSend() {
     if (!text.trim() || isPending) return
-    await mutateAsync({ empresaId, cliente: clienteId, message: text.trim() })
+    const textToSend = text.trim()
     setText('')
+    await mutateAsync({ empresaId, cliente: clienteId, message: textToSend })
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {

@@ -1,6 +1,7 @@
 'use client'
 
 import { Bot, User } from 'lucide-react'
+import { TypingIndicator } from './typing-indicator'
 
 interface Message {
   id: string
@@ -11,6 +12,7 @@ interface Message {
 
 interface MessageListProps {
   mensagens?: Message[]
+  isWaiting?: boolean
 }
 
 function formatTime(dateStr: string) {
@@ -20,7 +22,7 @@ function formatTime(dateStr: string) {
   })
 }
 
-export function MessageList({ mensagens }: MessageListProps) {
+export function MessageList({ mensagens, isWaiting = false }: MessageListProps) {
   if (!mensagens || mensagens.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground py-16">
@@ -71,6 +73,8 @@ export function MessageList({ mensagens }: MessageListProps) {
           </div>
         )
       })}
+
+      {isWaiting && <TypingIndicator />}
     </div>
   )
 }

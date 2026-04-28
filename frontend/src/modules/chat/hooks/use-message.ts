@@ -14,15 +14,21 @@ interface GetMessagesResponse {
   hasMore: boolean
 }
 
-export function useMessages(conversaId: string, limit = 50, offset = 0) {
+export function useMessages(
+  conversaId: string,
+  empresaId: string,
+  cliente: string,
+  limit = 50,
+  offset = 0,
+) {
   return useQuery({
-    queryKey: ['messages', conversaId, limit, offset],
+    queryKey: ['messages', conversaId, empresaId, cliente, limit, offset],
     queryFn: async () => {
       const res = await api.get<GetMessagesResponse>('/ai/messages', {
-        params: { conversaId, limit, offset },
+        params: { conversaId, empresaId, cliente, limit, offset },
       })
       return res.data.data
     },
-    enabled: !!conversaId,
+    enabled: !!conversaId && !!empresaId && !!cliente,
   })
 }

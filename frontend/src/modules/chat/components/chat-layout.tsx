@@ -1,16 +1,25 @@
 'use client'
 
+import { useState, useRef, useEffect } from 'react'
 import { Bot } from 'lucide-react'
 import { useMessages } from '../hooks/use-message'
 import { MessageList } from './message-list'
 import { MessageInput } from './message-input'
 
 export function ChatLayout() {
-  const conversaId = '3210796e-e0c8-4c23-ae3a-95d0ee6cb6ea' // usa um real do seu banco
+  const conversaId = 'a5872d98-6665-4f7d-a07e-56362cdca864' // usa um real do seu banco
   const empresaId = '67890' // usa um real do seu banco
-  const clienteId = 'e8d65bcc-0ef6-4ea3-ba7f-875422400968' // usa um real do seu banco
+  const clienteId = '12345' // usa um real do seu banco
 
-  const { data, isLoading } = useMessages(conversaId)
+  const [isWaitingReply, setIsWaitingReply] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const { data, isLoading } = useMessages(conversaId, empresaId, clienteId)
+
+  // Rola até o fim sempre que novas mensagens chegam ou o indicador aparece
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [data, isWaitingReply])
 
   return (
     <div className="flex h-screen bg-background">
@@ -67,8 +76,9 @@ export function ChatLayout() {
               <p className="text-muted-foreground text-sm">Carregando mensagens...</p>
             </div>
           ) : (
-            <MessageList mensagens={data} />
+            <MessageList mensagens={data} isWaiting={isWaitingReply} />
           )}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Input area */}
@@ -77,6 +87,7 @@ export function ChatLayout() {
             conversaId={conversaId}
             empresaId={empresaId}
             clienteId={clienteId}
+            onPendingChange={setIsWaitingReply}
           />
         </div>
       </main>
