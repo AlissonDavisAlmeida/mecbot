@@ -16,6 +16,7 @@ import { MessageArchiveJob } from './tasks/message-archive.-job.service';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+      ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
     PrismaModule,
     AuthModule,
