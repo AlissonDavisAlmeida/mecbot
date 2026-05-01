@@ -8,7 +8,6 @@ const PROTECTED_ROUTES = ['/dashboard', '/chat', '/profile', '/settings']
 /**
  * proxy.ts — substitui o middleware.ts no Next.js 16.
  * Roda no runtime Node.js e intercepta todas as requisições de navegação.
- *
  * Regras:
  * - Usuário não autenticado tentando acessar rota protegida → redireciona para /login
  * - Usuário autenticado tentando acessar /login ou /register → redireciona para /
