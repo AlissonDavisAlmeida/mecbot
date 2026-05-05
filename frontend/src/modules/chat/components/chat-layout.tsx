@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Bot, LogOut } from 'lucide-react'
+import { Bot, LogOut, Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useMessages } from '../hooks/use-message'
@@ -15,6 +15,7 @@ export function ChatLayout() {
   const clienteId = '12345' // usa um real do seu banco
 
   const [isWaitingReply, setIsWaitingReply] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const { user, clearAuth } = useAuthStore()
@@ -26,22 +27,36 @@ export function ChatLayout() {
     router.push('/login')
   }
 
-  // Iniciais do nome para o avatar
   const initials = user?.nome
     ? user.nome.split(' ').slice(0, 2).map((n) => n[0].toUpperCase()).join('')
     : '?'
 
-  // Rola até o fim sempre que novas mensagens chegam ou o indicador aparece
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [data, isWaitingReply])
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-dvh bg-background overflow-hidden">
+      {/* Overlay mobile */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-72 bg-card border-r border-border flex flex-col">
-        {/* Sidebar header — clica para voltar à landing */}
-        <div className="px-4 py-4 border-b border-border">
+      <aside
+        className={[
+          'fixed inset-y-0 left-0 z-40 w-72 bg-card border-r border-border flex flex-col',
+          'transition-transform duration-200 ease-in-out',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+          'md:relative md:translate-x-0 md:z-auto md:flex-shrink-0',
+        ].join(' ')}
+      >
+        {/* Sidebar header */}
+        <div className="px-4 py-4 border-b border-border flex items-center justify-between">
           <Link
             href="/"
             className="flex items-center gap-2.5 w-fit rounded-lg hover:opacity-80 transition-opacity"
@@ -51,6 +66,14 @@ export function ChatLayout() {
             </div>
             <span className="font-semibold text-foreground text-sm">MecBot</span>
           </Link>
+
+          <button
+            className="md:hidden flex items-center justify-center w-7 h-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Fechar menu"
+          >
+            <X size={16} />
+          </button>
         </div>
 
         {/* Conversation list */}
@@ -58,7 +81,10 @@ export function ChatLayout() {
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-2 mb-2">
             Conversas
           </p>
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-accent cursor-pointer hover:bg-accent/80 transition-colors">
+          <div
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-accent cursor-pointer hover:bg-accent/80 transition-colors"
+            onClick={() => setSidebarOpen(false)}
+          >
             <div className="w-8 h-8 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
               <span className="text-blue-400 text-xs font-bold">CT</span>
             </div>
@@ -69,21 +95,18 @@ export function ChatLayout() {
           </div>
         </div>
 
-        {/* Sidebar footer — usuário logado + logout */}
+        {/* Sidebar footer */}
         <div className="border-t border-border px-3 py-3">
-          <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl hover:bg-accent/60 transition-colors group">
-            {/* Avatar com iniciais */}
+          <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl hover:bg-accent/60 transition-colors">
             <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
               <span className="text-white text-xs font-bold">{initials}</span>
             </div>
-            {/* Info do usuário */}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate leading-tight">
                 {user?.nome ?? 'Usuário'}
               </p>
               <p className="text-xs text-muted-foreground truncate">{user?.email ?? ''}</p>
             </div>
-            {/* Botão logout — sempre visível */}
             <button
               onClick={handleLogout}
               title="Sair"
@@ -98,22 +121,32 @@ export function ChatLayout() {
       {/* Chat area */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Chat header */}
-        <header className="bg-card border-b border-border px-6 py-3.5 flex items-center gap-3">
+        <header className="bg-card border-b border-border px-4 py-3.5 flex items-center gap-3">
+          <button
+            className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Abrir menu"
+          >
+            <Menu size={18} />
+          </button>
+
           <div className="w-9 h-9 rounded-full bg-blue-600/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
             <span className="text-blue-400 text-xs font-bold">CT</span>
           </div>
-          <div>
-            <h2 className="font-semibold text-foreground text-sm leading-tight">Cliente teste</h2>
+          <div className="min-w-0">
+            <h2 className="font-semibold text-foreground text-sm leading-tight truncate">
+              Cliente teste
+            </h2>
             <p className="text-xs text-muted-foreground">Atendimento em andamento</p>
           </div>
-          <div className="ml-auto flex items-center gap-1.5">
+          <div className="ml-auto flex items-center gap-1.5 flex-shrink-0">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-xs text-muted-foreground">Online</span>
+            <span className="text-xs text-muted-foreground hidden sm:inline">Online</span>
           </div>
         </header>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <p className="text-muted-foreground text-sm">Carregando mensagens...</p>
@@ -125,7 +158,7 @@ export function ChatLayout() {
         </div>
 
         {/* Input area */}
-        <div className="bg-card border-t border-border px-6 py-4">
+        <div className="bg-card border-t border-border px-4 py-4 sm:px-6">
           <MessageInput
             conversaId={conversaId}
             empresaId={empresaId}
