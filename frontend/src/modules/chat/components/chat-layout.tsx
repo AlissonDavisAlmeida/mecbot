@@ -1,10 +1,13 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Bot } from 'lucide-react'
+import { Bot, LogOut } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useMessages } from '../hooks/use-message'
 import { MessageList } from './message-list'
 import { MessageInput } from './message-input'
+import { useAuthStore } from '@/store/auth.store'
 
 export function ChatLayout() {
   const conversaId = 'a5872d98-6665-4f7d-a07e-56362cdca864' // usa um real do seu banco
@@ -13,8 +16,20 @@ export function ChatLayout() {
 
   const [isWaitingReply, setIsWaitingReply] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+  const { user, clearAuth } = useAuthStore()
 
   const { data, isLoading } = useMessages(conversaId, empresaId, clienteId)
+
+  function handleLogout() {
+    clearAuth()
+    router.push('/login')
+  }
+
+  // Iniciais do nome para o avatar
+  const initials = user?.nome
+    ? user.nome.split(' ').slice(0, 2).map((n) => n[0].toUpperCase()).join('')
+    : '?'
 
   // Rola até o fim sempre que novas mensagens chegam ou o indicador aparece
   useEffect(() => {
@@ -25,14 +40,17 @@ export function ChatLayout() {
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
       <aside className="w-72 bg-card border-r border-border flex flex-col">
-        {/* Sidebar header */}
+        {/* Sidebar header — clica para voltar à landing */}
         <div className="px-4 py-4 border-b border-border">
-          <div className="flex items-center gap-2.5">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 w-fit rounded-lg hover:opacity-80 transition-opacity"
+          >
             <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
               <Bot size={14} className="text-white" />
             </div>
             <span className="font-semibold text-foreground text-sm">MecBot</span>
-          </div>
+          </Link>
         </div>
 
         {/* Conversation list */}
@@ -48,6 +66,31 @@ export function ChatLayout() {
               <p className="text-sm font-medium text-foreground truncate">Cliente teste</p>
               <p className="text-xs text-muted-foreground truncate">Última mensagem...</p>
             </div>
+          </div>
+        </div>
+
+        {/* Sidebar footer — usuário logado + logout */}
+        <div className="border-t border-border px-3 py-3">
+          <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl hover:bg-accent/60 transition-colors group">
+            {/* Avatar com iniciais */}
+            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-xs font-bold">{initials}</span>
+            </div>
+            {/* Info do usuário */}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground truncate leading-tight">
+                {user?.nome ?? 'Usuário'}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">{user?.email ?? ''}</p>
+            </div>
+            {/* Botão logout */}
+            <button
+              onClick={handleLogout}
+              title="Sair"
+              className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
+            >
+              <LogOut size={14} />
+            </button>
           </div>
         </div>
       </aside>
