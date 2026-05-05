@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -8,8 +7,10 @@ import { AuthService } from './auth.service';
 import { RegisterUserUseCase } from './application/use-cases/register-user.use-case';
 import { LoginUserUseCase } from './application/use-cases/login-user.use-case';
 import { UsersRepository } from './infrastructure/repositories/users.repository';
+import { EmpresasRepository } from './infrastructure/repositories/empresas.repository';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { USERS_REPOSITORY_TOKEN } from './domain/ports/users-repository.port';
+import { EMPRESAS_REPOSITORY_TOKEN } from './domain/ports/empresas-repository.port';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { TenantGuard } from './guards/tenant.guard';
 
@@ -35,6 +36,7 @@ import { TenantGuard } from './guards/tenant.guard';
     JwtAuthGuard,
     TenantGuard,
     { provide: USERS_REPOSITORY_TOKEN, useClass: UsersRepository },
+    { provide: EMPRESAS_REPOSITORY_TOKEN, useClass: EmpresasRepository },
   ],
   exports: [JwtAuthGuard, TenantGuard, JwtModule],
 })

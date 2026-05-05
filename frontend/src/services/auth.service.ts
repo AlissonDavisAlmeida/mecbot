@@ -5,7 +5,7 @@ export type RegisterPayload = {
   nome: string
   email: string
   senha: string
-  empresaId: string
+  nomeEmpresa: string
 }
 
 export type LoginPayload = {

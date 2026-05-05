@@ -21,7 +21,8 @@ export default function RegisterPage() {
     nome: '',
     email: '',
     senha: '',
-    empresaId: '',
+    confirmarSenha: '',
+    nomeEmpresa: '',
   })
 
   const { mutate, isPending, error } = useRegister()
@@ -32,8 +33,12 @@ export default function RegisterPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    mutate(form)
+    if (form.senha !== form.confirmarSenha) return
+    const { confirmarSenha: _, ...payload } = form
+    mutate(payload)
   }
+
+  const senhasMismatch = form.confirmarSenha.length > 0 && form.senha !== form.confirmarSenha
 
   const errorMessage =
     error instanceof Error ? error.message : error ? 'Erro ao criar conta' : null
@@ -49,90 +54,114 @@ export default function RegisterPage() {
         <CardHeader>
           <CardTitle>Criar conta</CardTitle>
           <CardDescription>
-            Preencha os dados abaixo para criar sua conta no MecBot
+            Crie sua conta e comece a usar o MecBot na sua oficina
           </CardDescription>
         </CardHeader>
 
-      <form onSubmit={handleSubmit}>
-        <CardContent className="flex flex-col gap-4">
-          {errorMessage && (
-            <p className="text-sm text-destructive rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2">
-              {errorMessage}
+        <form onSubmit={handleSubmit}>
+          <CardContent className="flex flex-col gap-4">
+            {errorMessage && (
+              <p className="text-sm text-destructive rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2">
+                {errorMessage}
+              </p>
+            )}
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="nomeEmpresa">Nome da oficina / empresa</Label>
+              <Input
+                id="nomeEmpresa"
+                name="nomeEmpresa"
+                type="text"
+                placeholder="Ex: Oficina do Carlos"
+                value={form.nomeEmpresa}
+                onChange={handleChange}
+                required
+                disabled={isPending}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="nome">Seu nome completo</Label>
+              <Input
+                id="nome"
+                name="nome"
+                type="text"
+                placeholder="João Silva"
+                value={form.nome}
+                onChange={handleChange}
+                required
+                disabled={isPending}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="email">E-mail</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="joao@oficina.com.br"
+                value={form.email}
+                onChange={handleChange}
+                required
+                disabled={isPending}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="senha">Senha</Label>
+              <Input
+                id="senha"
+                name="senha"
+                type="password"
+                placeholder="Mínimo 8 caracteres"
+                value={form.senha}
+                onChange={handleChange}
+                required
+                minLength={8}
+                disabled={isPending}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="confirmarSenha">Confirmar senha</Label>
+              <Input
+                id="confirmarSenha"
+                name="confirmarSenha"
+                type="password"
+                placeholder="Repita a senha"
+                value={form.confirmarSenha}
+                onChange={handleChange}
+                required
+                disabled={isPending}
+                className={senhasMismatch ? 'border-destructive focus-visible:ring-destructive' : ''}
+              />
+              {senhasMismatch && (
+                <p className="text-xs text-destructive">As senhas não coincidem</p>
+              )}
+            </div>
+          </CardContent>
+
+          <CardFooter className="flex flex-col gap-3">
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isPending || senhasMismatch}
+              size="lg"
+            >
+              {isPending && <Loader2 className="animate-spin" />}
+              {isPending ? 'Criando conta…' : 'Criar conta grátis'}
+            </Button>
+
+            <p className="text-sm text-muted-foreground text-center">
+              Já tem uma conta?{' '}
+              <Link href="/login" className="text-primary underline-offset-4 hover:underline">
+                Entrar
+              </Link>
             </p>
-          )}
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="nome">Nome completo</Label>
-            <Input
-              id="nome"
-              name="nome"
-              type="text"
-              placeholder="João Silva"
-              value={form.nome}
-              onChange={handleChange}
-              required
-              disabled={isPending}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="email">E-mail</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="joao@oficina.com.br"
-              value={form.email}
-              onChange={handleChange}
-              required
-              disabled={isPending}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="senha">Senha</Label>
-            <Input
-              id="senha"
-              name="senha"
-              type="password"
-              placeholder="Mínimo 8 caracteres"
-              value={form.senha}
-              onChange={handleChange}
-              required
-              disabled={isPending}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="empresaId">ID da Empresa</Label>
-            <Input
-              id="empresaId"
-              name="empresaId"
-              type="text"
-              placeholder="UUID da empresa cadastrada"
-              value={form.empresaId}
-              onChange={handleChange}
-              required
-              disabled={isPending}
-            />
-          </div>
-        </CardContent>
-
-        <CardFooter className="flex flex-col gap-3">
-          <Button type="submit" className="w-full" disabled={isPending} size="lg">
-            {isPending && <Loader2 className="animate-spin" />}
-            {isPending ? 'Criando conta…' : 'Criar conta'}
-          </Button>
-
-          <p className="text-sm text-muted-foreground text-center">
-            Já tem uma conta?{' '}
-            <Link href="/login" className="text-primary underline-offset-4 hover:underline">
-              Entrar
-            </Link>
-          </p>
-        </CardFooter>
-      </form>
-    </Card>
+          </CardFooter>
+        </form>
+      </Card>
     </div>
   )
 }

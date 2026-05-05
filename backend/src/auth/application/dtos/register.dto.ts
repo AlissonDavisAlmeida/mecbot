@@ -2,17 +2,17 @@ export class RegisterDto {
   nome: string;
   email: string;
   senha: string;
-  empresaId: string;
+  nomeEmpresa: string;
 
-    constructor(
-        nome: string,
-        email: string,
-        senha: string,
-        empresaId: string,
-    ){
-        this.nome = nome;
-        this.email = email;
-        this.senha = senha;
-        this.empresaId = empresaId;
-    }
+  constructor(
+    nome: string,
+    email: string,
+    senha: string,
+    nomeEmpresa: string,
+  ) {
+    this.nome = nome;
+    this.email = email;
+    this.senha = senha;
+    this.nomeEmpresa = nomeEmpresa;
+  }
 }

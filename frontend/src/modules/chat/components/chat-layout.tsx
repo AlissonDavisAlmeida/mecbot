@@ -83,11 +83,11 @@ export function ChatLayout() {
               </p>
               <p className="text-xs text-muted-foreground truncate">{user?.email ?? ''}</p>
             </div>
-            {/* Botão logout */}
+            {/* Botão logout — sempre visível */}
             <button
               onClick={handleLogout}
               title="Sair"
-              className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
+              className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
             >
               <LogOut size={14} />
             </button>
